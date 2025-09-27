@@ -1,0 +1,65 @@
+name: LaplaceExplorer
+description: An educational app for exploring and sharing Laplace Transform pairs and example problems.
+
+entities:
+  User:
+    authenticable: true
+    properties:
+      - name
+      - { name: email, type: email }
+      - { name: role, type: choice, options: { values: [admin, instructor, student], default: student } }
+    policies:
+      create:
+        - access: admin
+      read:
+        - { access: restricted, allow: User, condition: self }
+      update:
+        - { access: restricted, allow: User, condition: self }
+      delete:
+        - access: admin
+      signup:
+        - access: public
+
+  TransformPair:
+    properties:
+      - { name: timeDomainFunction, type: string, options: { label: "f(t) - Time Domain", required: true } }
+      - { name: laplaceDomainFunction, type: string, options: { label: "F(s) - Laplace Domain", required: true } }
+      - { name: description, type: text, options: { required: false } }
+      - { name: category, type: choice, options: { values: [basic, property, special_function], default: basic } }
+    belongsTo:
+      - { name: owner, entity: User }
+    policies:
+      create:
+        - { access: restricted, allow: User }
+      read:
+        - access: public
+      update:
+        - { access: restricted, allow: User, condition: self }
+      delete:
+        - { access: restricted, allow: User, condition: self }
+
+  ExampleProblem:
+    properties:
+      - { name: title, type: string, options: { required: true } }
+      - { name: problemStatement, type: text, options: { label: "Problem Statement", required: true } }
+      - { name: solution, type: text, options: { label: "Step-by-step Solution", required: true } }
+      - { name: difficulty, type: choice, options: { values: [easy, medium, hard], default: medium } }
+    belongsTo:
+      - { name: owner, entity: User }
+    policies:
+      create:
+        - { access: restricted, allow: User, roles: [admin, instructor] }
+      read:
+        - access: public
+      update:
+        - { access: restricted, allow: User, condition: self }
+      delete:
+        - { access: restricted, allow: User, condition: self }
+
+# Health check endpoint for connection testing
+endpoints:
+  health:
+    path: /api/health
+    method: GET
+    policies: []
+    handler: healthCheck
